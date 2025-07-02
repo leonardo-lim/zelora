@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { ThemeProvider } from '@mui/material';
+import { theme } from './theme';
 import './globals.css';
 
 const metadata: Metadata = {
@@ -13,7 +15,11 @@ interface RootLayoutProps {
 const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
     return (
         <html lang="en">
-            <body>{children}</body>
+            <body>
+                <ThemeProvider theme={theme}>
+                    {children}
+                </ThemeProvider>
+            </body>
         </html>
     );
 };
