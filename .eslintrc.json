@@ -23,6 +23,7 @@
     "rules": {
         "react/react-in-jsx-scope": "off",
         "react/no-unescaped-entities": 0,
+        "react-hooks/exhaustive-deps": "off",
         "@typescript-eslint/no-namespace": "off",
         "@typescript-eslint/no-empty-function": "warn",
         "@typescript-eslint/no-var-requires": "warn",
