@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ThemeProvider } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import './globals.css';
 
@@ -17,6 +17,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         <html lang="en">
             <body>
                 <ThemeProvider theme={theme}>
+                    <CssBaseline />
                     {children}
                 </ThemeProvider>
             </body>
