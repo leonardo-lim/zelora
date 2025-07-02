@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import './globals.css';
+import Toast from '@/components/feedback/Toast';
 
 const metadata: Metadata = {
     title: 'Zelora',
@@ -19,6 +20,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
                 <ThemeProvider theme={theme}>
                     <CssBaseline />
                     {children}
+                    <Toast />
                 </ThemeProvider>
             </body>
         </html>
