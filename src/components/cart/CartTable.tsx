@@ -2,7 +2,7 @@
 
 import type { ChangeEvent } from 'react';
 import type { CartType } from '@/types/cart-type';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Button,
     Paper,
@@ -38,6 +38,10 @@ const CartTable: React.FC<CartTableProps> = ({ carts, getCartProducts }) => {
         setPage(0);
         setRowsPerPage(parseInt(event.target.value, 10));
     };
+
+    useEffect(() => {
+        setPage(0);
+    }, [carts]);
 
     return (
         <Stack direction="column" spacing={1}>

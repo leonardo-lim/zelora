@@ -1,12 +1,13 @@
 'use client';
 
+import type { ChangeEvent } from 'react';
 import type { NextPage } from 'next';
 import type { CartType } from '@/types/cart-type';
 import type { ProductType } from '@/types/product-type';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/lib/axios-instance';
-import { Button, Skeleton, Stack, Typography } from '@mui/material';
+import { Button, Skeleton, Stack, TextField, Typography } from '@mui/material';
 import { AddShoppingCart } from '@mui/icons-material';
 import { useSnackbarStore } from '@/stores/snackbar-store';
 import Navbar from '@/components/layout/Navbar';
@@ -18,13 +19,34 @@ const Home: NextPage = () => {
 
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [carts, setCarts] = useState<CartType[]>([]);
+    const [filteredCarts, setFilteredCarts] = useState<CartType[]>([]);
     const [products, setProducts] = useState<ProductType[]>([]);
     const [cartProducts, setCartProducts] = useState<ProductType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isPopupLoading, setIsPopupLoading] = useState(false);
     const [open, setOpen] = useState(false);
+    const [productName, setProductName] = useState('');
 
     const router = useRouter();
+
+    const filterCartsByProductName = (name: string) => {
+        const productNames = new Map(products.map((product) => (
+            [product.id, product.title.toLowerCase()])
+        ));
+
+        const filtered = carts
+            .filter((cart) => cart.products.some((product) => (
+                productNames.get(product.productId)?.includes(name.toLowerCase())
+            )));
+
+        setFilteredCarts(filtered);
+    };
+
+    const changeProductName = (event: ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+        setProductName(value);
+        filterCartsByProductName(value);
+    };
 
     const getCarts = async () => {
         try {
@@ -34,6 +56,7 @@ const Home: NextPage = () => {
 
             if (response.status === 200) {
                 setCarts(response.data);
+                setFilteredCarts(response.data);
                 getProducts();
             }
         } catch (error) {
@@ -121,19 +144,44 @@ const Home: NextPage = () => {
                         padding: { xs: '100px 40px 40px 40px', md: '100px 80px 40px 80px' }
                     }}
                 >
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Stack
+                        direction={{ xs: 'column', md: 'row' }}
+                        spacing={2}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'start', md: 'center' }}
+                    >
                         <Typography variant="h4">Cart List</Typography>
-                        <Button
-                            variant="contained"
-                            size="medium"
-                            startIcon={<AddShoppingCart />}
+                        <Stack
+                            direction="row"
+                            spacing={3}
+                            justifyContent="space-between"
                             sx={{
-                                width: '140px',
-                                backgroundColor: 'black'
+                                width: { xs: '100%', md: 'auto' }
                             }}
                         >
-                            Add Cart
-                        </Button>
+                            <TextField
+                                size="small"
+                                placeholder="Filter by product name"
+                                type="text"
+                                variant="outlined"
+                                value={productName}
+                                onChange={changeProductName}
+                                sx={{
+                                    width: '200px'
+                                }}
+                            />
+                            <Button
+                                variant="contained"
+                                size="medium"
+                                startIcon={<AddShoppingCart />}
+                                sx={{
+                                    width: '140px',
+                                    backgroundColor: 'black'
+                                }}
+                            >
+                                Add Cart
+                            </Button>
+                        </Stack>
                     </Stack>
                     {isLoading ? (
                         <Stack direction="column">
@@ -143,7 +191,7 @@ const Home: NextPage = () => {
                             ))}
                         </Stack>
                     ) : (
-                        <CartTable carts={carts} getCartProducts={getCartProducts} />
+                        <CartTable carts={filteredCarts} getCartProducts={getCartProducts} />
                     )}
                 </Stack>
                 <CartDetailsPopup
