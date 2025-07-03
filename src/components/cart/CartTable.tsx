@@ -19,9 +19,10 @@ import { formatDate } from '@/utils/date';
 
 interface CartTableProps {
     carts: CartType[];
+    getCartProducts: (cartId: number) => void;
 }
 
-const CartTable: React.FC<CartTableProps> = ({ carts }) => {
+const CartTable: React.FC<CartTableProps> = ({ carts, getCartProducts }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -70,6 +71,7 @@ const CartTable: React.FC<CartTableProps> = ({ carts }) => {
                                         sx={{
                                             backgroundColor: 'black'
                                         }}
+                                        onClick={() => getCartProducts(cart.id)}
                                     >
                                         View Cart
                                     </Button>

@@ -1,6 +1,8 @@
 'use client';
 
 import type { NextPage } from 'next';
+import type { CartType } from '@/types/cart-type';
+import type { ProductType } from '@/types/product-type';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/lib/axios-instance';
@@ -9,13 +11,18 @@ import { AddShoppingCart } from '@mui/icons-material';
 import { useSnackbarStore } from '@/stores/snackbar-store';
 import Navbar from '@/components/layout/Navbar';
 import CartTable from '@/components/cart/CartTable';
+import CartDetailsPopup from '@/components/cart/CartDetailsPopup';
 
 const Home: NextPage = () => {
     const { showSnackbar } = useSnackbarStore();
 
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const [carts, setCarts] = useState([]);
+    const [carts, setCarts] = useState<CartType[]>([]);
+    const [products, setProducts] = useState<ProductType[]>([]);
+    const [cartProducts, setCartProducts] = useState<ProductType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isPopupLoading, setIsPopupLoading] = useState(false);
+    const [open, setOpen] = useState(false);
 
     const router = useRouter();
 
@@ -27,12 +34,66 @@ const Home: NextPage = () => {
 
             if (response.status === 200) {
                 setCarts(response.data);
+                getProducts();
             }
         } catch (error) {
             showSnackbar('Failed to get carts', 'error');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const getCart = async (cartId: number) => {
+        try {
+            setIsPopupLoading(true);
+
+            const response = await axiosInstance.get(`/carts/${cartId}`);
+
+            if (response.status === 200) {
+                const cart = response.data;
+                return cart;
+            }
+        } catch (error) {
+            showSnackbar('Failed to get cart', 'error');
+        } finally {
+            setIsPopupLoading(false);
+        }
+    };
+
+    const getProducts = async () => {
+        try {
+            setIsLoading(true);
+
+            const response = await axiosInstance.get('/products');
+
+            if (response.status === 200) {
+                setProducts(response.data);
+            }
+        } catch (error) {
+            showSnackbar('Failed to get products', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getCartProducts = async (cartId: number) => {
+        setOpen(true);
+
+        const cart: CartType = await getCart(cartId);
+        const cartProductQuantity = new Map();
+
+        cart.products.forEach((product) => {
+            cartProductQuantity.set(product.productId, product.quantity);
+        });
+
+        const filteredProducts = products
+            .filter((product) => cartProductQuantity.has(product.id))
+            .map((product) => ({
+                ...product,
+                quantity: cartProductQuantity.get(product.id)
+            }));
+
+        setCartProducts(filteredProducts);
     };
 
     useEffect(() => {
@@ -82,9 +143,15 @@ const Home: NextPage = () => {
                             ))}
                         </Stack>
                     ) : (
-                        <CartTable carts={carts} />
+                        <CartTable carts={carts} getCartProducts={getCartProducts} />
                     )}
                 </Stack>
+                <CartDetailsPopup
+                    open={open}
+                    setOpen={setOpen}
+                    isLoading={isPopupLoading}
+                    cartProducts={cartProducts}
+                />
             </>
         )
     );
