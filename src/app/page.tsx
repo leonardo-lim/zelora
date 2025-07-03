@@ -10,21 +10,23 @@ import axiosInstance from '@/lib/axios-instance';
 import { Button, Skeleton, Stack, TextField, Typography } from '@mui/material';
 import { AddShoppingCart } from '@mui/icons-material';
 import { useSnackbarStore } from '@/stores/snackbar-store';
+import { useCartStore } from '@/stores/cart-store';
 import Navbar from '@/components/layout/Navbar';
 import CartTable from '@/components/cart/CartTable';
 import CartDetailsPopup from '@/components/cart/CartDetailsPopup';
+import AddCartForm from '@/components/cart/AddCartForm';
 
 const Home: NextPage = () => {
     const { showSnackbar } = useSnackbarStore();
+    const { carts } = useCartStore();
 
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const [carts, setCarts] = useState<CartType[]>([]);
     const [filteredCarts, setFilteredCarts] = useState<CartType[]>([]);
     const [products, setProducts] = useState<ProductType[]>([]);
     const [cartProducts, setCartProducts] = useState<ProductType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [isPopupLoading, setIsPopupLoading] = useState(false);
-    const [open, setOpen] = useState(false);
+    const [addOpen, setAddOpen] = useState(false);
+    const [detailsOpen, setDetailsOpen] = useState(false);
     const [productName, setProductName] = useState('');
 
     const router = useRouter();
@@ -48,39 +50,8 @@ const Home: NextPage = () => {
         filterCartsByProductName(value);
     };
 
-    const getCarts = async () => {
-        try {
-            setIsLoading(true);
-
-            const response = await axiosInstance.get('/carts');
-
-            if (response.status === 200) {
-                setCarts(response.data);
-                setFilteredCarts(response.data);
-                getProducts();
-            }
-        } catch (error) {
-            showSnackbar('Failed to get carts', 'error');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const getCart = async (cartId: number) => {
-        try {
-            setIsPopupLoading(true);
-
-            const response = await axiosInstance.get(`/carts/${cartId}`);
-
-            if (response.status === 200) {
-                const cart = response.data;
-                return cart;
-            }
-        } catch (error) {
-            showSnackbar('Failed to get cart', 'error');
-        } finally {
-            setIsPopupLoading(false);
-        }
+    const getCart = (cartId: number) => {
+        return carts.find((cart) => cart.id === cartId);
     };
 
     const getProducts = async () => {
@@ -99,10 +70,10 @@ const Home: NextPage = () => {
         }
     };
 
-    const getCartProducts = async (cartId: number) => {
-        setOpen(true);
+    const getCartProducts = (cartId: number) => {
+        setDetailsOpen(true);
 
-        const cart: CartType = await getCart(cartId);
+        const cart = getCart(cartId) as CartType;
         const cartProductQuantity = new Map();
 
         cart.products.forEach((product) => {
@@ -120,8 +91,14 @@ const Home: NextPage = () => {
     };
 
     useEffect(() => {
-        getCarts();
+        getProducts();
     }, []);
+
+    useEffect(() => {
+        if (carts.length) {
+            setFilteredCarts(carts);
+        }
+    }, [carts]);
 
     useEffect(() => {
         const authorized = document.cookie.includes('is-authorized=true');
@@ -174,6 +151,7 @@ const Home: NextPage = () => {
                                 variant="contained"
                                 size="medium"
                                 startIcon={<AddShoppingCart />}
+                                onClick={() => setAddOpen(true)}
                                 sx={{
                                     width: '140px',
                                     backgroundColor: 'black'
@@ -194,10 +172,14 @@ const Home: NextPage = () => {
                         <CartTable carts={filteredCarts} getCartProducts={getCartProducts} />
                     )}
                 </Stack>
+                <AddCartForm
+                    open={addOpen}
+                    setOpen={setAddOpen}
+                    products={products}
+                />
                 <CartDetailsPopup
-                    open={open}
-                    setOpen={setOpen}
-                    isLoading={isPopupLoading}
+                    open={detailsOpen}
+                    setOpen={setDetailsOpen}
                     cartProducts={cartProducts}
                 />
             </>

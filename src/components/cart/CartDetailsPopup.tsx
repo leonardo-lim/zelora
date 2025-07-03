@@ -1,20 +1,18 @@
 'use client';
 
 import type { ProductType } from '@/types/product-type';
-import { Modal, Skeleton, Stack, Typography } from '@mui/material';
+import { Modal, Stack, Typography } from '@mui/material';
 import ProductTable from '@/components/cart/ProductTable';
 
 interface CartDetailsPopupProps {
     open: boolean;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    isLoading: boolean;
     cartProducts: ProductType[];
 }
 
 const CartDetailsPopup: React.FC<CartDetailsPopupProps> = ({
     open,
     setOpen,
-    isLoading,
     cartProducts
 }) => {
     const closeModal = () => {
@@ -52,28 +50,17 @@ const CartDetailsPopup: React.FC<CartDetailsPopupProps> = ({
                         {cartProducts.length} product{cartProducts.length > 1 && 's'} in cart
                     </Typography>
                 </Stack>
-                {isLoading ? (
-                    <Stack direction="column">
-                        <Skeleton animation="wave" height={64} />
-                        {Array.from({ length: 5 }).map((_, idx) => (
-                            <Skeleton key={idx} animation="wave" height={64} />
-                        ))}
-                    </Stack>
-                ) : (
-                    <ProductTable cartProducts={cartProducts} />
-                )}
-                {!isLoading && (
-                    <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        sx={{
-                            padding: '0 16px'
-                        }}
-                    >
-                        <Typography variant="h6">Total Prices</Typography>
-                        <Typography variant="h6">${getTotalPrices()}</Typography>
-                    </Stack>
-                )}
+                <ProductTable cartProducts={cartProducts} />
+                <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    sx={{
+                        padding: '0 16px'
+                    }}
+                >
+                    <Typography variant="h6">Total Prices</Typography>
+                    <Typography variant="h6">${getTotalPrices().toFixed(2)}</Typography>
+                </Stack>
             </Stack>
         </Modal>
     );
